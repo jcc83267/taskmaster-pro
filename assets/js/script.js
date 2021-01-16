@@ -9,10 +9,10 @@ var createTask = function(taskText, taskDate, taskList) {
   var taskP = $("<p>")
     .addClass("m-1")
     .text(taskText);
-
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
-
+  //check due date
+  auditTask(taskLi);
 
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
@@ -94,33 +94,38 @@ $(".list-group").on("click", "span", function(){
     .val(date);
   //swap out elements
   $(this).replaceWith(dateInput);
+  //enable jquery ui datepicker
+  dateInput.datepicker({
+    minDate: 1
+  });
   //automatically focus on new elements
   dateInput.trigger("focus")
-})
+});
 
-$(".list-group").on("blur", "input[type='text']", function(){
-  //get current text
+// value of due date was changed
+$(".list-group").on("change", "input[type='text']", function() {
   var date = $(this)
     .val()
     .trim();
-  //get the parent ul's id attribute
+  // get status type and position in the list
   var status = $(this)
     .closest(".list-group")
     .attr("id")
     .replace("list-", "");
-  //get the task position in th elist of ohter li elements
   var index = $(this)
-    .closest("list-group-item")
+    .closest(".list-group-item")
     .index();
-  //update task in array and re-save to local storage
+  // update task in array and re-save to localstorage
   tasks[status][index].date = date;
   saveTasks();
-  //recreate span element with bootstrap classes
+  // recreate span and insert in place of input element
   var taskSpan = $("<span>")
     .addClass("badge badge-primary badge-pill")
     .text(date);
-  //replace input with span
-  $(this).replaceWith(taskSpan);
+    $(this).replaceWith(taskSpan);
+
+    //PASS tasks's li element into audittask(0 to check new due dates)
+    auditTask($(taskSpan).closest(".list-group-item"));
 });
 
 $(".card .list-group").sortable({
@@ -183,10 +188,37 @@ $("#trash").droppable({
   out: function(event, ui) {
     console.log("out");
   }
-
 });
 
+var auditTask = function( taskEl) {
+  //get date from task element
+  var date = $(taskEl).find("span").text().trim();
+  //ensure it worked 
+  console.log(date);
+  
+  //convert to mement object at 5:00p,
+  var time = moment(date, "L").set("hour", 17);
+  
+  //remove any old classes from element
+  $(taskEl).removeClass("list-group-item-warning list-group-item-danger");
 
+  //apply new class if task is near/over due date
+  if (moment().isAfter(time)){
+    $(taskEl).addClass("list-group-item-danger");
+  }
+  else if (Math.abs(moment().diff(time, "days")) <=2) {
+    $(taskEl).addClass("list-group-item-warning");
+  }
+}
+
+
+$("#modalDueDate").datepicker({
+  minDate: 1,
+  onClose: function() {
+    //when calendar is closed, force a "change" event on the date input
+    $(this).trigger("change");
+  }
+});
 
 // modal was triggered
 $("#task-form-modal").on("show.bs.modal", function() {
