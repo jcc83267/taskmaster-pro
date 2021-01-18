@@ -144,11 +144,9 @@ $(".card .list-group").sortable({
   },
   over: function(event) {
     $(event.target).addClass("dropover-active");
-    $(".bottom-trash").addClass("bottom-trash-active");
   },
   out: function(event) {
     $(event.target).removeClass("dropover-active");
-    $(".bottom-trash").removeClass("bottom-trash-active");
   },
   update: function(event) {
     //array to store the task data in
@@ -186,12 +184,15 @@ $("#trash").droppable({
   drop: function(event, ui) {
     ui.draggable.remove();
     console.log("drop");
+    $(".bottom-trash").removeClass("bottom-trash-active");
   },
   over: function(event, ui) {
+    $(".bottom-trash").addClass("bottom-trash-active");
     console.log("over");
   },
   out: function(event, ui) {
     console.log("out");
+    $(".bottom-trash").removeClass("bottom-trash-active");
   }
 });
 
